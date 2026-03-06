@@ -2,7 +2,7 @@ import { gql, useQuery } from '@apollo/client';
 import Mapbox from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY || 'pk.placeholder');
 
@@ -19,12 +19,8 @@ const GET_NEARBY_PARTIES = gql`
   }
 `;
 
-import { SignedIn, SignedOut, useOAuth } from '@clerk/clerk-expo';
-import * as Linking from 'expo-linking';
-import * as WebBrowser from 'expo-web-browser';
-import { useCallback } from 'react';
-
-WebBrowser.maybeCompleteAuthSession();
+import { SignedIn, SignedOut, useSignIn, useSignUp } from '@clerk/clerk-expo';
+import { TextInput } from 'react-native';
 
 export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<number[] | null>(null);
@@ -52,21 +48,71 @@ export default function MapScreen() {
     skip: !userLocation,
   });
 
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const { signIn, setActive: setSignInActive, isLoaded: isSignInLoaded } = useSignIn();
+  const { signUp, setActive: setSignUpActive, isLoaded: isSignUpLoaded } = useSignUp();
 
-  const onPressLogin = useCallback(async () => {
+  const [emailAddress, setEmailAddress] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(true);
+
+  const onSignInPress = async () => {
+    if (!isSignInLoaded) return;
     try {
-      const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow({
-        redirectUrl: Linking.createURL('/dashboard', { scheme: 'bumpn' }),
+      const signInAttempt = await signIn.create({
+        identifier: emailAddress,
+        password,
       });
 
-      if (createdSessionId && setActive) {
-        setActive({ session: createdSessionId });
+      if (signInAttempt.status === 'complete') {
+        await setSignInActive({ session: signInAttempt.createdSessionId });
+      } else {
+        console.error(JSON.stringify(signInAttempt, null, 2));
       }
-    } catch (err) {
-      console.error('OAuth error', err);
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
     }
-  }, []);
+  };
+
+  const onSignUpPress = async () => {
+    if (!isSignUpLoaded) return;
+
+    if (username.length < 4) {
+      Alert.alert("Sign Up Error", "Username must be at least 4 characters long.");
+      return;
+    }
+
+    try {
+      await signUp.create({
+        emailAddress,
+        username,
+        password,
+      });
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setPendingVerification(true);
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+      Alert.alert("Sign Up Error", err.errors?.[0]?.message || err.message || "An unknown error occurred");
+    }
+  };
+
+  const onPressVerify = async () => {
+    if (!isSignUpLoaded) return;
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+      if (completeSignUp.status === 'complete') {
+        await setSignUpActive({ session: completeSignUp.createdSessionId });
+      } else {
+        console.error(JSON.stringify(completeSignUp, null, 2));
+      }
+    } catch (err: any) {
+      console.error(JSON.stringify(err, null, 2));
+    }
+  };
 
   return (
     <View style={styles.page}>
@@ -77,9 +123,71 @@ export default function MapScreen() {
           <Text style={styles.title}>Bumpn</Text>
           <Text style={styles.subtitle}>Find the vibe. Join the party.</Text>
 
-          <TouchableOpacity style={styles.loginButton} onPress={onPressLogin}>
-            <Text style={styles.loginText}>Sign in with Google</Text>
-          </TouchableOpacity>
+          {!pendingVerification && (
+            <>
+              <TextInput
+                autoCapitalize="none"
+                value={emailAddress}
+                placeholder="Email..."
+                placeholderTextColor="#666"
+                onChangeText={(email) => setEmailAddress(email)}
+                style={styles.input}
+              />
+              {!isLoggingIn && (
+                <TextInput
+                  autoCapitalize="none"
+                  value={username}
+                  placeholder="Username..."
+                  placeholderTextColor="#666"
+                  onChangeText={(user) => setUsername(user)}
+                  style={styles.input}
+                />
+              )}
+              <TextInput
+                value={password}
+                placeholder="Password..."
+                placeholderTextColor="#666"
+                secureTextEntry={true}
+                onChangeText={(password) => setPassword(password)}
+                style={styles.input}
+              />
+              {isLoggingIn ? (
+                <>
+                  <TouchableOpacity style={styles.loginButton} onPress={onSignInPress}>
+                    <Text style={styles.loginText}>Sign In</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.textButton} onPress={() => setIsLoggingIn(false)}>
+                    <Text style={styles.textButtonText}>Need an account? Sign Up</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.loginButton} onPress={onSignUpPress}>
+                    <Text style={styles.loginText}>Sign Up</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.textButton} onPress={() => setIsLoggingIn(true)}>
+                    <Text style={styles.textButtonText}>Have an account? Sign In</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </>
+          )}
+
+          {pendingVerification && (
+            <>
+              <TextInput
+                value={code}
+                placeholder="Verification Code..."
+                placeholderTextColor="#666"
+                onChangeText={(code) => setCode(code)}
+                style={styles.input}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity style={styles.loginButton} onPress={onPressVerify}>
+                <Text style={styles.loginText}>Verify Email</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </SignedOut>
 
@@ -191,5 +299,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '600'
+  },
+  input: {
+    width: '100%',
+    backgroundColor: '#1E1E1E',
+    color: 'white',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  textButton: {
+    marginTop: 16,
+    padding: 8,
+  },
+  textButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
   }
 });

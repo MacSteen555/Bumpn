@@ -9,7 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@apollo/client": "^3.11.0",
+    "@apollo/client": "^3.13.0",
     "@clerk/clerk-expo": "^2.3.17",
     "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/elements": "^2.9.10",
