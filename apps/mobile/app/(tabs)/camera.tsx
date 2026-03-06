@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useRef, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -43,15 +45,28 @@ export default function PartyCamScreen() {
     if (photo) {
         return (
             <View style={styles.container}>
-                <Image source={{ uri: photo }} style={{ flex: 1 }} />
-                <View style={styles.controls}>
-                    <TouchableOpacity style={styles.button} onPress={() => setPhoto(null)}>
-                        <Text style={styles.text}>Retake</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.buttonPrimary} onPress={uploadPhoto}>
-                        <Text style={styles.text}>Post</Text>
-                    </TouchableOpacity>
-                </View>
+                <Image source={{ uri: photo }} style={styles.fullscreenImage} />
+                <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.8)']}
+                    style={styles.bottomGradient}
+                >
+                    <View style={styles.controls}>
+                        <TouchableOpacity style={styles.retakeButton} onPress={() => setPhoto(null)}>
+                            <Ionicons name="close" size={28} color="white" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={uploadPhoto} style={{ flex: 1, marginLeft: 16 }}>
+                            <LinearGradient
+                                colors={['#FF2A54', '#FF5E3A']}
+                                style={styles.postGradientButton}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                            >
+                                <Text style={styles.postText}>Post to Party</Text>
+                                <Ionicons name="send" size={20} color="white" style={{ marginLeft: 8 }} />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                </LinearGradient>
             </View>
         )
     }
@@ -72,32 +87,47 @@ export default function PartyCamScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         backgroundColor: '#000',
     },
     camera: {
         flex: 1,
+        justifyContent: 'flex-end',
+    },
+    fullscreenImage: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    bottomGradient: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 200,
+        justifyContent: 'flex-end',
+        paddingBottom: 40,
     },
     buttonContainer: {
-        flex: 1,
-        backgroundColor: 'transparent',
         flexDirection: 'row',
         justifyContent: 'center',
-        margin: 64,
+        alignItems: 'center',
+        marginBottom: 60,
     },
     captureButton: {
-        alignSelf: 'flex-end',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        width: 84,
+        height: 84,
+        borderRadius: 42,
+        backgroundColor: 'transparent',
+        borderWidth: 4,
+        borderColor: 'rgba(255, 255, 255, 0.4)',
     },
     captureButtonInner: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 68,
+        height: 68,
+        borderRadius: 34,
         backgroundColor: 'white',
     },
     button: {
@@ -107,20 +137,35 @@ const styles = StyleSheet.create({
         margin: 8,
         alignItems: 'center'
     },
-    buttonPrimary: {
-        backgroundColor: '#007AFF',
-        padding: 16,
-        borderRadius: 8,
-        margin: 8,
-        alignItems: 'center',
-        flex: 1
-    },
     controls: {
         flexDirection: 'row',
-        position: 'absolute',
-        bottom: 40,
-        width: '100%',
-        paddingHorizontal: 16
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    retakeButton: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    postGradientButton: {
+        flexDirection: 'row',
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#FF2A54',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+    },
+    postText: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: 'white',
+        letterSpacing: 0.5,
     },
     text: {
         fontSize: 18,

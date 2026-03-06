@@ -6,6 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="7dd7713c-7daa-46b0-8aaf-921b403c1aaa" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/mobile/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/mobile/app/(tabs)/camera.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/app/(tabs)/camera.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/mobile/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/app/(tabs)/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/mobile/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/mobile/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
