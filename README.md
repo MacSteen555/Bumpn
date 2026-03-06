@@ -1,50 +1,101 @@
-# Welcome to your Expo app 👋
+# Bumpn
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Find the vibe. Join the party.**
 
-## Get started
+Bumpn is a real-time social map of nightlife, allowing users to discover where the best parties are happening and share the experience through a shared event camera feed.
 
-1. Install dependencies
+This repository is set up as a monorepo consisting of two main parts:
+- **`apps/mobile`**: The React Native (Expo) frontend for iOS and Android.
+- **`apps/backend`**: The Node.js + Express + Apollo GraphQL API.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## 🛠 Prerequisites
 
-   ```bash
-   npx expo start
-   ```
+Make sure you have the following installed on your local machine:
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- `npm` or `yarn`
+- **Expo Go** app on your iOS/Android device, or an Emulator/Simulator installed locally (e.g., Android Studio).
+- Access to [Clerk](https://clerk.com/) (Auth), [Mapbox](https://mapbox.com/) (Maps), [MongoDB Atlas](https://www.mongodb.com/) (Database), and [Redis](https://redis.io/) (PubSub).
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🚀 Getting Started
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 1. Install Dependencies
+From the root of the project, run:
 ```bash
-npm run reset-project
+npm install
+```
+*(This will install dependencies for both the mobile and backend workspaces.)*
+
+---
+
+### 2. Configure Environment Variables
+You need two `.env` files. One inside `apps/mobile/` and another inside `apps/backend/`.
+
+#### Mobile (`apps/mobile/.env`):
+This contains public keys needed by the React Native app.
+```env
+# Clerk Authentication Public Key (Starts with pk_test_...)
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+
+# Mapbox Access Token (Starts with pk....)
+EXPO_PUBLIC_MAPBOX_KEY=your_mapbox_public_key
+
+# Your Local Network IP for the GraphQL API (e.g., http://192.168.1.xxx:4000/graphql)
+EXPO_PUBLIC_API_URL=http://localhost:4000/graphql
+```
+*Note: If testing on a physical device, `localhost` won't work in `EXPO_PUBLIC_API_URL`. You must use your computer's local Wi-Fi IP address (e.g., `192.168.x.x`).*
+
+#### Backend (`apps/backend/.env`):
+This contains secure backend secrets. **DO NOT** commit this file.
+```env
+# Server Port (Default is 4000)
+PORT=4000
+
+# MongoDB URI String from MongoDB Atlas
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/bumpn
+
+# Clerk Secret Key (Starts with sk_test_...)
+CLERK_SECRET_KEY=your_clerk_secret_key
+
+# Redis connection string for GraphQL subscriptions
+REDIS_URL=redis://localhost:6379 
+
+# Cloudflare R2 / AWS S3 Storage Variables 
+# (You can leave these blank initially if you aren't testing photo uploads yet)
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET_NAME=bumpn-media
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🏃 Running the Application
 
-To learn more about developing your project with Expo, look at the following resources:
+Because this is a monorepo with separate front and backends, you will need **two terminal windows**.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Step 1: Start the Backend (GraphQL API)
+Open Terminal 1:
+```bash
+cd apps/backend
+npm run dev
+```
+> The API will be available at `http://localhost:4000/graphql` and you can visit that URL in your browser to use the Apollo Sandbox to run queries directly against your local database.
 
-## Join the community
+### Step 2: Start the Mobile App (Expo)
+Open Terminal 2:
+```bash
+cd apps/mobile
+npx expo start
+```
+> You can now press `a` to open the app in Android Studio emulator, `i` for iOS Simulator (Mac only), or scan the QR code with your phone using the Expo Go application.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📝 Troubleshooting
+- **Network Request Failed (Mobile)**: This usually means the Expo app on your phone can't reach your backend. Check that `EXPO_PUBLIC_API_URL` uses your computer's local IP address instead of `localhost`.
+- **Metro Bundler Errors**: Try clearing the cache by stopping the Expo server and running `npx expo start -c`.
+- **Database Connection**: Ensure your computer's current IP address is allowlisted in MongoDB Atlas Network Access.
